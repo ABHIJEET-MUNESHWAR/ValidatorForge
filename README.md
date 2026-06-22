@@ -20,6 +20,9 @@ structured tracing, Prometheus metrics, and a full test + benchmark suite.
 > lifecycle**, and the **fully-composed resilience stack** (timeout + retry + circuit breaker +
 > rate limit + bulkhead).
 
+[![CI](https://github.com/ABHIJEET-MUNESHWAR/ValidatorForge/actions/workflows/ci.yml/badge.svg)](https://github.com/ABHIJEET-MUNESHWAR/ValidatorForge/actions/workflows/ci.yml)
+&nbsp;Rust 1.89 · Edition 2021 · Apache-2.0
+
 ---
 
 ## Table of Contents
