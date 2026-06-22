@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "ValidatorForge API",
+    "description": "GraphQL operations control plane for ValidatorForge — a Solana validator-fleet ops node. Register nodes, launch deployment sagas (provision / zero-downtime upgrade / hot-spare failover / decommission), inspect the type-state node lifecycle and saga run history, ask the AI advisor for a recommendation, and stream live ops events over a GraphQL subscription. Set the `baseUrl` collection variable (default http://localhost:8080). Start the server with `validatorforge-node serve`. Deployments are admission-gated by a token-bucket rate limiter and a bounded bulkhead (errors with code `throttled`); every saga effect inherits timeout + retry + circuit-breaker.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ],
+  "item": [
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "registerNode",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Register($input: RegisterNodeInput!) {\n  registerNode(input: $input) {\n    id\n    cluster\n    clusterName\n    host\n    role\n    state\n    version\n    createdAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"id\": \"eu-val-01\",\n    \"clusterName\": \"eu-fiber\",\n    \"cluster\": \"TESTNET\",\n    \"host\": \"val01.internal\",\n    \"role\": \"VOTING\",\n    \"version\": \"2.0.14\"\n  }\n}"
+              }
+            },
+            "description": "Register (upsert) a node. It starts in the `provisioning` state of the type-state lifecycle. Invalid ids/hosts/versions are rejected at the domain boundary (e.g. `empty_field`, `too_long`)."
+          }
+        },
+        {
+          "name": "startDeployment — provision",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Deploy($input: StartDeploymentInput!) {\n  startDeployment(input: $input) {\n    id\n    target\n    kind\n    status\n    completedSteps\n    startedAt\n    finishedAt\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"nodeId\": \"eu-val-01\",\n    \"kind\": \"PROVISION\"\n  }\n}"
+              }
+            },
+            "description": "Run a provision saga: apply_infra → tune_host → start_validator → await_catchup. Returns the terminal run record (status `succeeded` / `rolled_back` / `failed`). On success the node walks bootstrapping → catching_up → active."
+          }
+        },
+        {
+          "name": "startDeployment — upgrade",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Deploy($input: StartDeploymentInput!) {\n  startDeployment(input: $input) {\n    id\n    kind\n    status\n    completedSteps\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"nodeId\": \"eu-val-01\",\n    \"kind\": \"UPGRADE\",\n    \"targetVersion\": \"2.1.0\"\n  }\n}"
+              }
+            },
+            "description": "Zero-downtime upgrade saga: drain → start_validator → await_catchup. `targetVersion` is required for `UPGRADE` (omitting it errors)."
+          }
+        },
+        {
+          "name": "startDeployment — failover",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Deploy($input: StartDeploymentInput!) {\n  startDeployment(input: $input) {\n    id\n    kind\n    status\n    completedSteps\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"nodeId\": \"eu-val-01\",\n    \"kind\": \"FAILOVER\",\n    \"spare\": \"spare-01\"\n  }\n}"
+              }
+            },
+            "description": "Hot-spare failover saga: drain → swap_identity (compensation swaps identity back). `spare` is required for `FAILOVER` and must be a registered node."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query {\n  health {\n    status\n    nodes\n  }\n}", "variables": "{}" }
+            },
+            "description": "Service health + number of tracked nodes."
+          }
+        },
+        {
+          "name": "nodes",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query {\n  nodes {\n    id\n    cluster\n    host\n    role\n    state\n    version\n  }\n}", "variables": "{}" }
+            },
+            "description": "List the whole fleet."
+          }
+        },
+        {
+          "name": "node",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query Node($id: String!) {\n  node(id: $id) {\n    id\n    state\n    version\n    updatedAt\n  }\n}", "variables": "{\n  \"id\": \"eu-val-01\"\n}" }
+            },
+            "description": "Fetch one node by id (null when unknown)."
+          }
+        },
+        {
+          "name": "runs",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query Runs($limit: Int!) {\n  runs(limit: $limit) {\n    id\n    target\n    kind\n    status\n    completedSteps\n    startedAt\n    finishedAt\n  }\n}", "variables": "{\n  \"limit\": 20\n}" }
+            },
+            "description": "Recent deployment runs, newest first."
+          }
+        },
+        {
+          "name": "run",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query Run($id: String!) {\n  run(id: $id) {\n    id\n    kind\n    status\n    completedSteps\n  }\n}", "variables": "{\n  \"id\": \"1\"\n}" }
+            },
+            "description": "Fetch one run by id (null when unknown)."
+          }
+        },
+        {
+          "name": "advise (AI)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": { "query": "query Advise($nodeId: String!, $context: String!) {\n  advise(nodeId: $nodeId, context: $context)\n}", "variables": "{\n  \"nodeId\": \"eu-val-01\",\n  \"context\": \"CVE-2025-0001 disclosed; upgrade recommended\"\n}" }
+            },
+            "description": "Ask the advisor agent for a JSON recommendation { action, urgency, rationale }. Backed by the deterministic HeuristicAdvisor by default; an LlmAdvisor (feature `llm`) falls back to the heuristic on any provider error."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscription (WebSocket)",
+      "item": [
+        {
+          "name": "opsEvents (graphql-ws)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "ws://localhost:8080/graphql/ws", "protocol": "ws", "host": ["localhost"], "port": "8080", "path": ["graphql", "ws"] },
+            "description": "Live ops event stream over the graphql-transport-ws protocol. Open a WebSocket request in Postman to ws://localhost:8080/graphql/ws and send:\n\nsubscription {\n  opsEvents { kind payload }\n}\n\nEvents: run_started, step_completed, step_compensated, node_state_changed, health_evaluated, run_finished. Each subscriber gets an independent broadcast stream."
+          }
+        }
+      ]
+    }
+  ]
+}

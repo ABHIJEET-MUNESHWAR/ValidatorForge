@@ -1,0 +1,51 @@
+[package]
+name = "validatorforge-node"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+authors = ["Abhijeet Ashok Muneshwar <openingknots@gmail.com>"]
+repository = "https://github.com/ABHIJEET-MUNESHWAR/ValidatorForge"
+description = "Composition root for ValidatorForge: wires the simulated infra adapters into the ops engine, serves the resilient GraphQL API (queries, mutations, live subscriptions) over axum, exposes Prometheus metrics, and provides a CLI (serve / plan)."
+default-run = "validatorforge-node"
+
+[lib]
+name = "validatorforge_node"
+path = "src/lib.rs"
+
+[[bin]]
+name = "validatorforge-node"
+path = "src/main.rs"
+
+[[bench]]
+name = "saga_bench"
+harness = false
+
+[dependencies]
+validatorforge-types = { workspace = true }
+validatorforge-core = { workspace = true }
+validatorforge-infra = { workspace = true }
+validatorforge-ai = { workspace = true }
+validatorforge-api = { workspace = true }
+
+axum = { workspace = true }
+async-graphql = { workspace = true }
+async-graphql-axum = { workspace = true }
+tower-http = { workspace = true }
+
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+clap = { workspace = true }
+dotenvy = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tower = { workspace = true }
+criterion = { workspace = true }
+pprof = { workspace = true }

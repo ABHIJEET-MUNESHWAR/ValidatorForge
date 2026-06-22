@@ -1,0 +1,29 @@
+[package]
+name = "validatorforge-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Application core for ValidatorForge: ports (node agent, repository, event sink, advisor, clock), the resilient node-agent decorator, the compensating saga executor, and the ops engine that orchestrates provisioning, upgrade and failover."
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[dependencies]
+validatorforge-types = { workspace = true }
+validatorforge-resilience = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+metrics = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+serde_json = { workspace = true }

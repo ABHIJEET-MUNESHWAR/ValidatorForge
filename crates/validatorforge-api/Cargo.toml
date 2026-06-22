@@ -1,0 +1,25 @@
+[package]
+name = "validatorforge-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "GraphQL surface for ValidatorForge (async-graphql): queries for fleet/run/health state, mutations to register nodes and launch deployment sagas, and a live subscription over the ops event stream. Transport-agnostic so it can be unit-tested in-process."
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[dependencies]
+validatorforge-types = { workspace = true }
+validatorforge-core = { workspace = true }
+async-graphql = { workspace = true }
+futures = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+validatorforge-infra = { workspace = true }
+validatorforge-ai = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

@@ -1,0 +1,102 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/validatorforge-types",
+    "crates/validatorforge-resilience",
+    "crates/validatorforge-core",
+    "crates/validatorforge-infra",
+    "crates/validatorforge-ai",
+    "crates/validatorforge-api",
+    "crates/validatorforge-node",
+]
+exclude = ["target"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+authors = ["Abhijeet Ashok Muneshwar <openingknots@gmail.com>"]
+repository = "https://github.com/ABHIJEET-MUNESHWAR/ValidatorForge"
+description = "A Solana validator-fleet operations control plane: orchestrates node provisioning, zero-downtime upgrades and hot-spare failover as compensating sagas, renders Ansible/Terraform plans, tracks node health through a type-state lifecycle, and serves it all over a resilient, observable GraphQL API."
+
+[workspace.dependencies]
+# --- async runtime ---
+tokio = { version = "1.38", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# --- serialization ---
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# --- errors ---
+thiserror = "1"
+anyhow = "1"
+
+# --- GraphQL + web ---
+axum = { version = "0.8", features = ["macros", "ws"] }
+async-graphql = { version = "7", features = ["chrono"] }
+async-graphql-axum = "7"
+tower = { version = "0.5", features = ["util", "timeout", "limit"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "timeout"] }
+
+# --- observability ---
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
+metrics = "0.22"
+metrics-exporter-prometheus = "0.14"
+
+# --- config ---
+dotenvy = "0.15"
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# --- database (optional, behind feature) ---
+sqlx = { version = "0.8", default-features = false, features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "chrono",
+    "uuid",
+    "macros",
+    "migrate",
+] }
+
+# --- concurrency / parallelism ---
+rayon = "1.10"
+parking_lot = "0.12"
+dashmap = "6"
+
+# --- ids / time ---
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# --- testing / bench ---
+criterion = { version = "0.5" }
+proptest = "1.5"
+mockall = "0.12"
+pprof = { version = "0.14", features = ["flamegraph", "criterion"] }
+
+# --- internal crates ---
+validatorforge-types = { path = "crates/validatorforge-types" }
+validatorforge-resilience = { path = "crates/validatorforge-resilience" }
+validatorforge-core = { path = "crates/validatorforge-core" }
+validatorforge-infra = { path = "crates/validatorforge-infra" }
+validatorforge-ai = { path = "crates/validatorforge-ai" }
+validatorforge-api = { path = "crates/validatorforge-api" }
+validatorforge-node = { path = "crates/validatorforge-node" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+# Benchmarks keep debug symbols so the pprof sampling profiler can symbolicate
+# flame graphs (`cargo bench --bench <name> -- --profile-time <secs>`).
+[profile.bench]
+debug = true
+strip = false

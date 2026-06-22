@@ -1,0 +1,33 @@
+[package]
+name = "validatorforge-ai"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Agentic ops advisor for ValidatorForge: a deterministic heuristic recommender (always available) and an optional LLM-backed explainer (feature `llm`) that degrades to the heuristic on any failure. Implements the core OpsAdvisor port."
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[features]
+default = []
+llm = ["dep:reqwest"]
+
+[dependencies]
+validatorforge-types = { workspace = true }
+validatorforge-core = { workspace = true }
+validatorforge-resilience = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+], optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+chrono = { workspace = true }

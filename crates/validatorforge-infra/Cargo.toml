@@ -1,0 +1,35 @@
+[package]
+name = "validatorforge-infra"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Infrastructure adapters for ValidatorForge: in-memory and Postgres node/run repositories (the latter with range-partitioned run history), a broadcast event sink, a simulated node agent, the wall-clock adapter, and the default Ansible/Terraform IaC renderer."
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[features]
+default = []
+postgres = ["dep:sqlx", "dep:uuid"]
+
+[dependencies]
+validatorforge-types = { workspace = true }
+validatorforge-core = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+tracing = { workspace = true }
+futures = { workspace = true }
+sqlx = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros", "rt-multi-thread"] }

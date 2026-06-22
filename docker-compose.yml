@@ -1,0 +1,23 @@
+services:
+  node:
+    build: .
+    environment:
+      VALIDATORFORGE_HOST: 0.0.0.0
+      VALIDATORFORGE_PORT: 8080
+      VALIDATORFORGE_LOG_JSON: "true"
+      VALIDATORFORGE_EVENT_CAPACITY: "1024"
+      RUST_LOG: info
+    ports:
+      - "8080:8080"
+    command: ["serve"]
+
+  # Optional metrics stack: `docker compose --profile monitoring up`.
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitoring"]
+    depends_on:
+      - node
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
