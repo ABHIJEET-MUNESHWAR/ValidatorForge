@@ -1,0 +1,11 @@
+# cargo-audit configuration.
+#
+# RUSTSEC-2023-0071 (rsa "Marvin Attack" timing sidechannel) has NO upstream fix
+# available. The `rsa` crate is pulled into Cargo.lock ONLY through
+# `sqlx-macros-core`, which references the mysql/sqlite/postgres drivers for its
+# compile-time query macros. This service uses the Postgres driver exclusively
+# (sqlx is configured with `default-features = false, features = ["postgres", ...]`),
+# so the vulnerable RSA code path in `sqlx-mysql` is never compiled into the
+# binary nor reachable at runtime. Re-evaluate when a fixed `rsa` release ships.
+[advisories]
+ignore = ["RUSTSEC-2023-0071"]

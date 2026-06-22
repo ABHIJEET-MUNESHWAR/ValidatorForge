@@ -47,7 +47,9 @@ tower-http = { version = "0.6", features = ["trace", "cors", "timeout"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
 metrics = "0.22"
-metrics-exporter-prometheus = "0.14"
+# default-features disabled to drop the optional HTTP listener (hyper-tls -> native-tls -> openssl-sys);
+# metrics are rendered through the axum /metrics handler, so the listener is not needed.
+metrics-exporter-prometheus = { version = "0.14", default-features = false }
 
 # --- config ---
 dotenvy = "0.15"
